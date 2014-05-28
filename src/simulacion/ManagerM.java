@@ -1,13 +1,11 @@
 package simulacion;
 
 import ecuaciones.DemandManager;
-import java.awt.Color;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JSlider;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
 
 /**
  * @author simulacion
@@ -36,10 +34,10 @@ public class ManagerM extends Thread{
     private DefaultTableModel dtm;
     private JTable tabla;
     private JSlider velocidad;
-    private JComboBox ECONOMICO,NEGOCIO,EJECUTIVO,PREMIUM;
+    private JComboBox ECONOMICO,NEGOCIO,EJECUTIVO,PREMIUM,DIAS;
     private JLabel cantidadHabEconomica,cantidadHabNegocio,cantidadHabEjecutivo,cantidadHabPremium;
     
-    public ManagerM(StageM sm, DefaultTableModel dt,JTable t,JSlider vel,JComboBox jcbEcon,JComboBox jcbNeg,JComboBox jcbEje,JComboBox jcbPre,JLabel cantHabEco,JLabel cantHabNeg,JLabel cantHabEje,JLabel cantHabPre){
+    public ManagerM(StageM sm, DefaultTableModel dt,JTable t,JSlider vel,JComboBox jcbEcon,JComboBox jcbNeg,JComboBox jcbEje,JComboBox jcbPre,JComboBox jcbdias,JLabel cantHabEco,JLabel cantHabNeg,JLabel cantHabEje,JLabel cantHabPre){
         cantidadTotal=1;
         minutoInicio=480;
         minutoFinal=1440;
@@ -51,6 +49,7 @@ public class ManagerM extends Thread{
         NEGOCIO=jcbNeg;
         EJECUTIVO=jcbEje;
         PREMIUM=jcbPre;
+        DIAS=jcbdias;
         cantidadHabEconomica=cantHabEco;
         cantidadHabNegocio=cantHabNeg;
         cantidadHabEjecutivo=cantHabEje;
@@ -65,7 +64,7 @@ public class ManagerM extends Thread{
     public void run(){
         int inicio=minutoInicio;
         int cantidadNeg=1,cantidadEco=1,cantidadEje=1,cantidadPre=1;
-        for (int dia = 1; dia <= 2; dia++) {
+        for (int dia = 1; dia <= Integer.parseInt(String.valueOf(DIAS.getSelectedItem())); dia++) {
             generadata();
             float minutoEconomico=(((float)inicio)+segEconomico);
             float minutoNegocio=(((float)inicio)+segNegocio);

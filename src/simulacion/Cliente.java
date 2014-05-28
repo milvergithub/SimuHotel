@@ -2,7 +2,6 @@ package simulacion;
 
 import ecuaciones.DemandManager;
 
-import java.awt.*;
 import java.util.Random;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -65,7 +64,7 @@ public class Cliente extends Actor implements Runnable{
     public void run() {
         
         int cont=0;
-        while (cont<250) {            
+        while (cont<80) {            
             try {
                 this.mover();
                 Thread.sleep(velocidad.getValue()/10);

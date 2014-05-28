@@ -15,7 +15,7 @@ public class Actor extends JComponent{
     public Actor(StageM s){
         setSize(25,50);
         stage=s;
-        rejilla=2;
+        rejilla=5;
     }
     protected void mover(){
         this.setLocation(this.getX()+getRejilla(), this.getY());

@@ -1,13 +1,11 @@
 package simulacion;
 
-import ecuaciones.PanelM;
-import java.awt.Component;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -16,10 +14,11 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
+
 import org.jfree.chart.ChartPanel;
+
+import ecuaciones.PanelM;
+import java.util.HashMap;
 /**
  * @author simulacion
  */
@@ -32,22 +31,34 @@ public class World extends javax.swing.JFrame {
     private DefaultTableModel dtm;
     private DefaultTableModel dtmRep;
     
-    private ImageIcon imagen=new ImageIcon(getClass().getResource("/img/icono.jpg"));
+    private HashMap<String,Integer> economicos;
+    private HashMap<String,Integer> negocios;
+    private HashMap<String,Integer> ejecutivos;
+    private HashMap<String,Integer> premium;
+    
+    private HashMap<String,Integer> precios;
+    
+    private ImageIcon imagen=new ImageIcon(getClass().getResource("/img/iconhotel.gif"));
     private ManagerM mm;
     private Hora h;
     public World() {
-        contador=0;
-        setTitle("TALLER DE SIMULACION");
-        initComponents();
-        setings.setMaximizable(true);
-        setings.setTitle("CONFIGURACIONES DE LA SIMULACION");
-        this.setLocation(100, 0);
-        this.setSize(950, 710);
-        this.setResizable(false);
-        btnIniciar.setEnabled(true);
-        btnPausar.setEnabled(false);
-        btnTerminar.setEnabled(false);
-        this.setIconImage(new ImageIcon(getClass().getResource("/img/icono.jpg")).getImage());
+      economicos=new HashMap<String, Integer>();
+      negocios=new HashMap<String, Integer>();
+      ejecutivos=new HashMap<String, Integer>();
+      premium=new HashMap<String, Integer>();
+      precios=new HashMap<String, Integer>();
+      contador=0;
+      setTitle("TALLER DE SIMULACION");
+      initComponents();
+      setings.setMaximizable(true);
+      setings.setTitle("CONFIGURACIONES DE LA SIMULACION");
+      this.setLocation(100, 0);
+      this.setSize(950, 710);
+      this.setResizable(false);
+      btnIniciar.setEnabled(true);
+      btnPausar.setEnabled(false);
+      btnTerminar.setEnabled(false);
+      this.setIconImage(new ImageIcon(getClass().getResource("/img/iconhotel.gif")).getImage());
     }
     
     public void crearTabla(){
@@ -69,6 +80,15 @@ public class World extends javax.swing.JFrame {
         panelTabla.add(jsp);
         PanelTablaDetalle.add(jspd);
         
+    }
+    private int cantidadReal(int num1,int num2){
+        int signo=1;
+        if (num2>0){
+            return num1;
+        }
+        else {
+            return num1+num2;
+        }
     }
     private void mostrarReporte(){
         panelResultado.removeAll();
@@ -94,10 +114,8 @@ public class World extends javax.swing.JFrame {
         dtmRep=new DefaultTableModel(contenidoReporte, titulos);
         tablaReporte=new JTable(dtmRep);
         tablaReporte.setTableHeader(th);
-        tablaReporte.setShowVerticalLines(false);
-        tablaReporte.setShowHorizontalLines(false);
-        tablaReporte.setShowGrid(false);
         tablaReporte.setRowHeight(0, 50);
+        tablaReporte.setShowVerticalLines(false);
         JScrollPane jspReporte=new JScrollPane(tablaReporte);
         jspReporte.setBounds(0,0,panelResultado.getWidth(),panelResultado.getHeight()-50);
         
@@ -111,28 +129,32 @@ public class World extends javax.swing.JFrame {
             int cantDesEcon=(200+Integer.parseInt(txtEconomico.getText()))-(cantidadLlegadosEcon);
             int costoHabEco=78-(Integer.parseInt(String.valueOf(jcbEconomico.getSelectedItem())));
             montoRecaudadoEconomico=montoRecaudadoEconomico+(cantidadLlegadosEcon*costoHabEco);
-            String se[]={String.valueOf(dias.get(i)),"ECONOMICO",String.valueOf((cantidadLlegadosEcon+cantDesEcon)),String.valueOf(cantDesEcon),String.valueOf(costoHabEco),String.valueOf(((cantidadLlegadosEcon+cantDesEcon)*costoHabEco))};
+            economicos.put("Dia"+(i+1), cantidadReal(cantidadLlegadosEcon,cantDesEcon));
+            String se[]={String.valueOf(dias.get(i)),"ECONOMICO",String.valueOf((cantidadReal(cantidadLlegadosEcon,cantDesEcon))),String.valueOf(cantDesEcon),String.valueOf(costoHabEco),String.valueOf(getFormatoSubTotal(((cantidadReal(cantidadLlegadosEcon,cantDesEcon))*costoHabEco)))};
             dtmRep.addRow(se);
             
             cantidadLlegadosNego=dameCantidadXTipo((i+1), "NEGOCIOS");
+            negocios.put("Dia"+(i+1), cantidadLlegadosNego);
             int cantDesNego=(200+Integer.parseInt(txtNegocio.getText()))-(cantidadLlegadosNego);
             int costoHabNeg=97-(Integer.parseInt(String.valueOf(jcbNegocio.getSelectedItem())));
             montoRecaudadoNegocio=montoRecaudadoNegocio+(cantidadLlegadosNego*costoHabNeg);
-            String sn[]={String.valueOf(dias.get(i)),"NEGOCIOS",String.valueOf(cantidadLlegadosNego),String.valueOf(cantDesNego),String.valueOf(costoHabNeg),String.valueOf((cantidadLlegadosNego*costoHabNeg))};
+            String sn[]={String.valueOf(dias.get(i)),"NEGOCIOS",String.valueOf(cantidadLlegadosNego),String.valueOf(cantDesNego),String.valueOf(costoHabNeg),String.valueOf(getFormatoSubTotal((cantidadLlegadosNego*costoHabNeg)))};
             dtmRep.addRow(sn);
             
             cantidadLlegadoEjecu=dameCantidadXTipo((i+1), "EJECUTIVO");
+            ejecutivos.put("Dia"+(i+1), cantidadLlegadoEjecu);
             int cantDesEjec=(200+Integer.parseInt(txtEjecutivo.getText()))-(cantidadLlegadosNego);
             int costoHabEje=120-(Integer.parseInt(String.valueOf(jcbEjecutivo.getSelectedItem())));
             montoRecaudadoEjecutivo=montoRecaudadoEjecutivo+(cantidadLlegadoEjecu*costoHabEje);
-            String sej[]={String.valueOf(dias.get(i)),"EJECUTIVO",String.valueOf(cantidadLlegadoEjecu),String.valueOf(cantDesEjec),String.valueOf(costoHabEje),String.valueOf((cantidadLlegadoEjecu*costoHabEje))};
+            String sej[]={String.valueOf(dias.get(i)),"EJECUTIVO",String.valueOf(cantidadLlegadoEjecu),String.valueOf(cantDesEjec),String.valueOf(costoHabEje),String.valueOf(getFormatoSubTotal((cantidadLlegadoEjecu*costoHabEje)))};
             dtmRep.addRow(sej);
             
             cantidadLlegadoPremi=dameCantidadXTipo((i+1), "PREMIUM");
+            premium.put("Dia"+(i+1), cantidadLlegadoPremi);
             int cantDesPrem=(100+Integer.parseInt(txtPremium.getText()))-(cantidadLlegadoPremi);
             int costoHabPrem=180+(Integer.parseInt(String.valueOf(jcbPremium.getSelectedItem())));
             montoRecaudadoPremium=montoRecaudadoPremium+(cantidadLlegadoPremi*costoHabPrem);
-            String sp[]={String.valueOf(dias.get(i)),"PREMIUM",String.valueOf(cantidadLlegadoPremi),String.valueOf(cantDesPrem),String.valueOf(costoHabPrem),String.valueOf((cantidadLlegadoPremi*costoHabPrem))};
+            String sp[]={String.valueOf(dias.get(i)),"PREMIUM",String.valueOf(cantidadLlegadoPremi),String.valueOf(cantDesPrem),String.valueOf(costoHabPrem),String.valueOf(getFormatoSubTotal((cantidadLlegadoPremi*costoHabPrem)))};
             dtmRep.addRow(sp);
             
             int montoSubTotal=montoRecaudadoEconomico+montoRecaudadoNegocio+montoRecaudadoEjecutivo+montoRecaudadoPremium;
@@ -142,9 +164,39 @@ public class World extends javax.swing.JFrame {
             dtmRep.addRow(spacio);
         }
         int montoTotal=montoRecaudadoEconomico+montoRecaudadoNegocio+montoRecaudadoEjecutivo+montoRecaudadoPremium;
-        String resumen[]={"","","","","MONTO TOTAL =>",String.valueOf(montoTotal)};
+        String resumen[]={"","","","","MONTO TOTAL =>",String.valueOf(getFormatoCantidadTotal(montoTotal))};
         dtmRep.addRow(resumen);
         tablaReporte.repaint();
+        
+        precios.put("ECONOMICO", (78-Integer.parseInt(String.valueOf(jcbEconomico.getSelectedItem()))));
+        precios.put("NEGOCIO", (97-Integer.parseInt(String.valueOf(jcbEconomico.getSelectedItem()))));
+        precios.put("EJECUTIVO", (120-Integer.parseInt(String.valueOf(jcbEconomico.getSelectedItem()))));
+        precios.put("PREMIUM", (180+Integer.parseInt(String.valueOf(jcbEconomico.getSelectedItem()))));
+        
+        Graficos graficos=new Graficos(economicos, negocios, ejecutivos, premium,precios);
+        
+        ChartPanel panelBB=graficos.getGraficoBarras();
+        panelBB.setBounds(0, 0, PanelBarra.getWidth(), PanelBarra.getHeight()-50);
+        PanelBarra.add(panelBB);
+        PanelBarra.repaint();
+        
+        ChartPanel panelTT=graficos.getGraficoPie3D();
+        panelTT.setBounds(0, 0, PanelPieChart.getWidth(), PanelPieChart.getHeight()-50);
+        PanelPieChart.add(panelTT);
+        PanelPieChart.repaint();
+        
+        ChartPanel panelXY=graficos.getXYGraphics();
+        panelXY.setBounds(0, 0, PanelXYSeries.getWidth(), PanelXYSeries.getHeight()-50);
+        PanelXYSeries.add(panelXY);
+        PanelXYSeries.repaint();
+    }
+    private String getFormatoSubTotal(int cant){
+        String res="<html><style type=\"text/css\">body{font-weight:bold;font-size:12px;}.subtotal{color:#0443BE;}</style><span class=\"subtotal\">"+cant+"</span></html>";
+        return res;
+    }
+    private String getFormatoCantidadTotal(int cant){
+        String res="<html><style type=\"text/css\">body{ font-weight:bold;font-size:12px;background-color: #cecece;} .verde{ color:#009900;}</style><span class=\"verde\">"+cant+"</span></html>";
+        return res;
     }
     private int dameCantidadXTipo(int dia,String tipo){
         int cantidad=0;
@@ -220,6 +272,8 @@ public class World extends javax.swing.JFrame {
         btnIniciar = new javax.swing.JButton();
         btnPausar = new javax.swing.JButton();
         btnTerminar = new javax.swing.JButton();
+        jcbDias = new javax.swing.JComboBox();
+        jLabel16 = new javax.swing.JLabel();
         horario = new javax.swing.JLabel();
         lblHabitacionesEconomica1 = new javax.swing.JLabel();
         lblHabitacionesEconomica3 = new javax.swing.JLabel();
@@ -235,8 +289,7 @@ public class World extends javax.swing.JFrame {
         jPanel4 = new javax.swing.JPanel();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         PanelPieChart = new javax.swing.JPanel();
-        PanelSpline = new javax.swing.JPanel();
-        PanelProyected = new javax.swing.JPanel();
+        PanelXYSeries = new javax.swing.JPanel();
         PanelBarra = new javax.swing.JPanel();
         panelResultado = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
@@ -248,6 +301,7 @@ public class World extends javax.swing.JFrame {
         jMenu3 = new javax.swing.JMenu();
         jmiGraficoBarra = new javax.swing.JMenuItem();
         jmiGrafico3DPie = new javax.swing.JMenuItem();
+        jmiXYSeries = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(null);
@@ -286,7 +340,7 @@ public class World extends javax.swing.JFrame {
             }
         });
         PanelHabitaciones.add(txtEconomico);
-        txtEconomico.setBounds(140, 60, 40, 20);
+        txtEconomico.setBounds(200, 60, 40, 20);
 
         txtNegocio.setText("0");
         txtNegocio.addActionListener(new java.awt.event.ActionListener() {
@@ -300,7 +354,7 @@ public class World extends javax.swing.JFrame {
             }
         });
         PanelHabitaciones.add(txtNegocio);
-        txtNegocio.setBounds(140, 90, 40, 20);
+        txtNegocio.setBounds(200, 90, 40, 20);
 
         txtPremium.setText("0");
         txtPremium.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -309,7 +363,7 @@ public class World extends javax.swing.JFrame {
             }
         });
         PanelHabitaciones.add(txtPremium);
-        txtPremium.setBounds(140, 150, 40, 20);
+        txtPremium.setBounds(200, 150, 40, 20);
 
         txtEjecutivo.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
         txtEjecutivo.setText("0");
@@ -319,7 +373,7 @@ public class World extends javax.swing.JFrame {
             }
         });
         PanelHabitaciones.add(txtEjecutivo);
-        txtEjecutivo.setBounds(140, 120, 40, 20);
+        txtEjecutivo.setBounds(200, 120, 40, 20);
 
         jcbEconomico.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0", "10", "20" }));
         jcbEconomico.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
@@ -328,73 +382,73 @@ public class World extends javax.swing.JFrame {
             }
         });
         PanelHabitaciones.add(jcbEconomico);
-        jcbEconomico.setBounds(260, 60, 41, 20);
+        jcbEconomico.setBounds(330, 60, 50, 20);
 
         jcbNegocio.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0", "7.5", "15" }));
         PanelHabitaciones.add(jcbNegocio);
-        jcbNegocio.setBounds(260, 90, 41, 20);
+        jcbNegocio.setBounds(330, 90, 50, 20);
 
         jcbEjecutivo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0", "2", "5" }));
         PanelHabitaciones.add(jcbEjecutivo);
-        jcbEjecutivo.setBounds(260, 120, 41, 20);
+        jcbEjecutivo.setBounds(330, 120, 50, 20);
 
         jcbPremium.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0", "1", "5" }));
         PanelHabitaciones.add(jcbPremium);
-        jcbPremium.setBounds(260, 150, 41, 20);
+        jcbPremium.setBounds(330, 150, 50, 20);
 
         jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
         PanelHabitaciones.add(jSeparator1);
-        jSeparator1.setBounds(74, 26, 10, 150);
+        jSeparator1.setBounds(100, 20, 10, 150);
 
         jLabel1.setText("78  -");
         PanelHabitaciones.add(jLabel1);
-        jLabel1.setBounds(210, 60, 40, 20);
+        jLabel1.setBounds(270, 60, 40, 20);
 
         jLabel2.setText("97  -");
         PanelHabitaciones.add(jLabel2);
-        jLabel2.setBounds(210, 90, 40, 20);
+        jLabel2.setBounds(270, 90, 40, 20);
 
         jLabel3.setText("120  -");
         PanelHabitaciones.add(jLabel3);
-        jLabel3.setBounds(210, 120, 40, 20);
+        jLabel3.setBounds(270, 120, 40, 20);
 
         jLabel4.setText("180  +");
         PanelHabitaciones.add(jLabel4);
-        jLabel4.setBounds(210, 150, 40, 20);
+        jLabel4.setBounds(270, 150, 40, 20);
 
         jSeparator2.setOrientation(javax.swing.SwingConstants.VERTICAL);
         PanelHabitaciones.add(jSeparator2);
-        jSeparator2.setBounds(190, 20, 10, 150);
+        jSeparator2.setBounds(250, 20, 10, 150);
 
         jLabel9.setText("200  +");
         PanelHabitaciones.add(jLabel9);
-        jLabel9.setBounds(90, 60, 40, 20);
+        jLabel9.setBounds(130, 60, 50, 20);
 
         jLabel10.setText("200  +");
         PanelHabitaciones.add(jLabel10);
-        jLabel10.setBounds(90, 90, 40, 20);
+        jLabel10.setBounds(130, 90, 50, 20);
 
         jLabel11.setText("200  +");
         PanelHabitaciones.add(jLabel11);
-        jLabel11.setBounds(90, 120, 40, 20);
+        jLabel11.setBounds(130, 120, 50, 20);
 
         jLabel12.setText("100  +");
         PanelHabitaciones.add(jLabel12);
-        jLabel12.setBounds(90, 150, 40, 20);
+        jLabel12.setBounds(130, 150, 50, 20);
 
         jLabel13.setText("TIPO");
         PanelHabitaciones.add(jLabel13);
         jLabel13.setBounds(10, 20, 60, 20);
         PanelHabitaciones.add(jSeparator3);
-        jSeparator3.setBounds(10, 50, 290, 10);
+        jSeparator3.setBounds(10, 50, 370, 10);
 
         jLabel14.setText("CANT. HABITACION");
         PanelHabitaciones.add(jLabel14);
-        jLabel14.setBounds(80, 20, 110, 20);
+        jLabel14.setBounds(110, 20, 130, 20);
 
         jLabel15.setText("COSTO HABITACION");
         PanelHabitaciones.add(jLabel15);
-        jLabel15.setBounds(200, 20, 120, 20);
+        jLabel15.setBounds(260, 20, 140, 20);
 
         jsVelocidad.setMajorTickSpacing(50);
         jsVelocidad.setMaximum(300);
@@ -427,6 +481,10 @@ public class World extends javax.swing.JFrame {
             }
         });
 
+        jcbDias.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" }));
+
+        jLabel16.setText("DIAS");
+
         javax.swing.GroupLayout PanelStartLayout = new javax.swing.GroupLayout(PanelStart);
         PanelStart.setLayout(PanelStartLayout);
         PanelStartLayout.setHorizontalGroup(
@@ -438,17 +496,23 @@ public class World extends javax.swing.JFrame {
                 .addComponent(btnPausar)
                 .addGap(18, 18, 18)
                 .addComponent(btnTerminar)
-                .addContainerGap(57, Short.MAX_VALUE))
+                .addGap(44, 44, 44)
+                .addGroup(PanelStartLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jcbDias, 0, 73, Short.MAX_VALUE)
+                    .addComponent(jLabel16, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         PanelStartLayout.setVerticalGroup(
             PanelStartLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelStartLayout.createSequentialGroup()
-                .addContainerGap()
+                .addComponent(jLabel16)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(PanelStartLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnIniciar)
+                    .addComponent(jcbDias, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnTerminar)
                     .addComponent(btnPausar)
-                    .addComponent(btnTerminar))
-                .addContainerGap(20, Short.MAX_VALUE))
+                    .addComponent(btnIniciar))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout PanelConfigLayout = new javax.swing.GroupLayout(PanelConfig);
@@ -469,10 +533,10 @@ public class World extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jsVelocidad, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(PanelStart, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(PanelHabitaciones, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(PanelStart, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(PanelHabitaciones, javax.swing.GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE)
+                .addGap(16, 16, 16))
         );
 
         javax.swing.GroupLayout setingsLayout = new javax.swing.GroupLayout(setings.getContentPane());
@@ -487,7 +551,7 @@ public class World extends javax.swing.JFrame {
         );
 
         stage.add(setings);
-        setings.setBounds(570, 0, 370, 380);
+        setings.setBounds(500, 10, 440, 380);
         try {
             setings.setIcon(true);
         } catch (java.beans.PropertyVetoException e1) {
@@ -500,49 +564,49 @@ public class World extends javax.swing.JFrame {
         lblHabitacionesEconomica1.setForeground(new java.awt.Color(255, 255, 255));
         lblHabitacionesEconomica1.setText("<html>HABITACIONES<br> PREMIUM</html>");
         stage.add(lblHabitacionesEconomica1);
-        lblHabitacionesEconomica1.setBounds(460, 10, 90, 30);
+        lblHabitacionesEconomica1.setBounds(390, 10, 90, 30);
 
         lblHabitacionesEconomica3.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
         lblHabitacionesEconomica3.setForeground(new java.awt.Color(255, 255, 255));
         lblHabitacionesEconomica3.setText("<html>HABITACIONES<br> ECONOMICA</html>");
         stage.add(lblHabitacionesEconomica3);
-        lblHabitacionesEconomica3.setBounds(170, 10, 90, 30);
+        lblHabitacionesEconomica3.setBounds(100, 10, 90, 30);
 
         lblHabitacionesEconomica4.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
         lblHabitacionesEconomica4.setForeground(new java.awt.Color(255, 255, 255));
         lblHabitacionesEconomica4.setText("<html>HABITACIONES<br> NEGOCIO</html>");
         stage.add(lblHabitacionesEconomica4);
-        lblHabitacionesEconomica4.setBounds(270, 10, 90, 30);
+        lblHabitacionesEconomica4.setBounds(200, 10, 90, 30);
 
         lblHabitacionesEconomica5.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
         lblHabitacionesEconomica5.setForeground(new java.awt.Color(255, 255, 255));
         lblHabitacionesEconomica5.setText("<html>HABITACIONES<br>EJECUTIVO</html>");
         stage.add(lblHabitacionesEconomica5);
-        lblHabitacionesEconomica5.setBounds(360, 10, 90, 30);
+        lblHabitacionesEconomica5.setBounds(290, 10, 90, 30);
 
         lblCantidadPremium.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblCantidadPremium.setForeground(new java.awt.Color(255, 255, 255));
         lblCantidadPremium.setText("100");
         stage.add(lblCantidadPremium);
-        lblCantidadPremium.setBounds(460, 40, 40, 14);
+        lblCantidadPremium.setBounds(390, 40, 40, 14);
 
         lblCantidadEconomico.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblCantidadEconomico.setForeground(new java.awt.Color(255, 255, 255));
         lblCantidadEconomico.setText("200");
         stage.add(lblCantidadEconomico);
-        lblCantidadEconomico.setBounds(170, 40, 40, 14);
+        lblCantidadEconomico.setBounds(100, 40, 40, 14);
 
         lblCantidadNegocio.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblCantidadNegocio.setForeground(new java.awt.Color(255, 255, 255));
         lblCantidadNegocio.setText("200");
         stage.add(lblCantidadNegocio);
-        lblCantidadNegocio.setBounds(270, 40, 40, 14);
+        lblCantidadNegocio.setBounds(200, 40, 40, 14);
 
         lblCantidadEjecutivo.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         lblCantidadEjecutivo.setForeground(new java.awt.Color(255, 255, 255));
         lblCantidadEjecutivo.setText("200");
         stage.add(lblCantidadEjecutivo);
-        lblCantidadEjecutivo.setBounds(360, 40, 40, 14);
+        lblCantidadEjecutivo.setBounds(290, 40, 40, 14);
 
         panelTabla.setPreferredSize(new java.awt.Dimension(890, 150));
         panelTabla.setLayout(null);
@@ -579,31 +643,18 @@ public class World extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("GRAFICO Pie Chart", PanelPieChart);
 
-        javax.swing.GroupLayout PanelSplineLayout = new javax.swing.GroupLayout(PanelSpline);
-        PanelSpline.setLayout(PanelSplineLayout);
-        PanelSplineLayout.setHorizontalGroup(
-            PanelSplineLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout PanelXYSeriesLayout = new javax.swing.GroupLayout(PanelXYSeries);
+        PanelXYSeries.setLayout(PanelXYSeriesLayout);
+        PanelXYSeriesLayout.setHorizontalGroup(
+            PanelXYSeriesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 940, Short.MAX_VALUE)
         );
-        PanelSplineLayout.setVerticalGroup(
-            PanelSplineLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        PanelXYSeriesLayout.setVerticalGroup(
+            PanelXYSeriesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 624, Short.MAX_VALUE)
         );
 
-        jTabbedPane1.addTab("GRAFICO Spline", PanelSpline);
-
-        javax.swing.GroupLayout PanelProyectedLayout = new javax.swing.GroupLayout(PanelProyected);
-        PanelProyected.setLayout(PanelProyectedLayout);
-        PanelProyectedLayout.setHorizontalGroup(
-            PanelProyectedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 940, Short.MAX_VALUE)
-        );
-        PanelProyectedLayout.setVerticalGroup(
-            PanelProyectedLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 624, Short.MAX_VALUE)
-        );
-
-        jTabbedPane1.addTab("GRAFICO Proyected", PanelProyected);
+        jTabbedPane1.addTab("GRAFICO XYSeries", PanelXYSeries);
 
         PanelBarra.setLayout(null);
         jTabbedPane1.addTab("GRAFICO Barra", PanelBarra);
@@ -691,6 +742,14 @@ public class World extends javax.swing.JFrame {
         });
         jMenu3.add(jmiGrafico3DPie);
 
+        jmiXYSeries.setText("Grafico XYSeries");
+        jmiXYSeries.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jmiXYSeriesActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jmiXYSeries);
+
         jMenuBar1.add(jMenu3);
 
         setJMenuBar(jMenuBar1);
@@ -704,7 +763,7 @@ public class World extends javax.swing.JFrame {
             actulizarHabitaciones();
             panelTabla.removeAll();
             crearTabla();
-            mm=new ManagerM((StageM)stage,dtm,tablaResultados,jsVelocidad,jcbEconomico,jcbNegocio,jcbEjecutivo,jcbPremium,lblCantidadEconomico,lblCantidadNegocio,lblCantidadEjecutivo,lblCantidadPremium);
+            mm=new ManagerM((StageM)stage,dtm,tablaResultados,jsVelocidad,jcbEconomico,jcbNegocio,jcbEjecutivo,jcbPremium,jcbDias,lblCantidadEconomico,lblCantidadNegocio,lblCantidadEjecutivo,lblCantidadPremium);
             mm.start();
             btnIniciar.setEnabled(false);
             btnPausar.setEnabled(true);
@@ -838,26 +897,24 @@ public class World extends javax.swing.JFrame {
 
     private void jmiGraficoBarraActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmiGraficoBarraActionPerformed
         // TODO add your handling code here:
-        Graficos gra=new Graficos();
-        ChartPanel cp=gra.getGraficoBarras();
-        cp.setBounds(0, 0, PanelBarra.getWidth(), getHeight()-50);
-        PanelBarra.add(cp);
-        PanelBarra.repaint();
     }//GEN-LAST:event_jmiGraficoBarraActionPerformed
 
     private void jmiGrafico3DPieActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmiGrafico3DPieActionPerformed
         // TODO add your handling code here:
-        Graficos gra=new Graficos();
-        ChartPanel cp3d=gra.getGraficoPie3D();
-        cp3d.setBounds(0, 0, PanelPieChart.getWidth(), PanelPieChart.getHeight()-50);
-        PanelPieChart.add(cp3d);
-        PanelPieChart.repaint();
     }//GEN-LAST:event_jmiGrafico3DPieActionPerformed
+
+    private void jmiXYSeriesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jmiXYSeriesActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jmiXYSeriesActionPerformed
     
     public static void main(String args[]) {
         try {
-            //UIManager.setLookAndFeel("com.jtattoo.plaf.aluminium.AluminiumMenuBarUI");
-            UIManager.setLookAndFeel("com.jtattoo.plaf.texture.TextureLookAndFeel");
+            UIManager.setLookAndFeel("com.jtattoo.plaf.aluminium.AluminiumLookAndFeel");
+            //UIManager.setLookAndFeel("com.jtattoo.plaf.texture.TextureLookAndFeel");
+            //UIManager.setLookAndFeel("com.jtattoo.plaf.noire.NoireLookAndFeel");
+            //UIManager.setLookAndFeel("com.jtattoo.plaf.graphite.GraphiteLookAndFeel");
+            //UIManager.setLookAndFeel("com.jtattoo.plaf.hifi.HiFiLookAndFeel");
+            //UIManager.setLookAndFeel("com.jtattoo.plaf.graphite.GraphiteLookAndFeel");
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(World.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
@@ -878,10 +935,9 @@ public class World extends javax.swing.JFrame {
     private javax.swing.JPanel PanelConfig;
     private javax.swing.JPanel PanelHabitaciones;
     private javax.swing.JPanel PanelPieChart;
-    private javax.swing.JPanel PanelProyected;
-    private javax.swing.JPanel PanelSpline;
     private javax.swing.JPanel PanelStart;
     private javax.swing.JPanel PanelTablaDetalle;
+    private javax.swing.JPanel PanelXYSeries;
     private javax.swing.JButton btnIniciar;
     private javax.swing.JButton btnPausar;
     private javax.swing.JButton btnTerminar;
@@ -893,6 +949,7 @@ public class World extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -913,12 +970,14 @@ public class World extends javax.swing.JFrame {
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JComboBox jcbDias;
     private javax.swing.JComboBox jcbEconomico;
     private javax.swing.JComboBox jcbEjecutivo;
     private javax.swing.JComboBox jcbNegocio;
     private javax.swing.JComboBox jcbPremium;
     private javax.swing.JMenuItem jmiGrafico3DPie;
     private javax.swing.JMenuItem jmiGraficoBarra;
+    private javax.swing.JMenuItem jmiXYSeries;
     private javax.swing.JSlider jsVelocidad;
     private javax.swing.JTabbedPane jtpCentral;
     private javax.swing.JLabel lblCantidadEconomico;
