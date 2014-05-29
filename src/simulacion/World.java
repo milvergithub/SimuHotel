@@ -169,10 +169,13 @@ public class World extends javax.swing.JFrame {
         tablaReporte.repaint();
         
         precios.put("ECONOMICO", (78-Integer.parseInt(String.valueOf(jcbEconomico.getSelectedItem()))));
-        precios.put("NEGOCIO", (97-Integer.parseInt(String.valueOf(jcbEconomico.getSelectedItem()))));
-        precios.put("EJECUTIVO", (120-Integer.parseInt(String.valueOf(jcbEconomico.getSelectedItem()))));
-        precios.put("PREMIUM", (180+Integer.parseInt(String.valueOf(jcbEconomico.getSelectedItem()))));
+        precios.put("NEGOCIO", (97-Integer.parseInt(String.valueOf(jcbNegocio.getSelectedItem()))));
+        precios.put("EJECUTIVO", (120-Integer.parseInt(String.valueOf(jcbEjecutivo.getSelectedItem()))));
+        precios.put("PREMIUM", (180+Integer.parseInt(String.valueOf(jcbPremium.getSelectedItem()))));
         
+        PanelPieChart.removeAll();
+        PanelXYSeries.removeAll();
+        PanelBarra.removeAll();
         Graficos graficos=new Graficos(economicos, negocios, ejecutivos, premium,precios);
         
         ChartPanel panelBB=graficos.getGraficoBarras();
@@ -909,8 +912,8 @@ public class World extends javax.swing.JFrame {
     
     public static void main(String args[]) {
         try {
-            UIManager.setLookAndFeel("com.jtattoo.plaf.aluminium.AluminiumLookAndFeel");
-            //UIManager.setLookAndFeel("com.jtattoo.plaf.texture.TextureLookAndFeel");
+            //UIManager.setLookAndFeel("com.jtattoo.plaf.aluminium.AluminiumLookAndFeel");
+            UIManager.setLookAndFeel("com.jtattoo.plaf.texture.TextureLookAndFeel");
             //UIManager.setLookAndFeel("com.jtattoo.plaf.noire.NoireLookAndFeel");
             //UIManager.setLookAndFeel("com.jtattoo.plaf.graphite.GraphiteLookAndFeel");
             //UIManager.setLookAndFeel("com.jtattoo.plaf.hifi.HiFiLookAndFeel");
