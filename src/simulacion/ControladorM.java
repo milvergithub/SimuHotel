@@ -10,7 +10,7 @@ import javax.swing.table.DefaultTableModel;
 /**
  * @author simulacion
  */
-public class ManagerM extends Thread{
+public class ControladorM extends Thread{
     
     private float cantidadEconomica;
     private float cantidadNegocio;
@@ -37,7 +37,7 @@ public class ManagerM extends Thread{
     private JComboBox ECONOMICO,NEGOCIO,EJECUTIVO,PREMIUM,DIAS;
     private JLabel cantidadHabEconomica,cantidadHabNegocio,cantidadHabEjecutivo,cantidadHabPremium;
     
-    public ManagerM(StageM sm, DefaultTableModel dt,JTable t,JSlider vel,JComboBox jcbEcon,JComboBox jcbNeg,JComboBox jcbEje,JComboBox jcbPre,JComboBox jcbdias,JLabel cantHabEco,JLabel cantHabNeg,JLabel cantHabEje,JLabel cantHabPre){
+    public ControladorM(StageM sm, DefaultTableModel dt,JTable t,JSlider vel,JComboBox jcbEcon,JComboBox jcbNeg,JComboBox jcbEje,JComboBox jcbPre,JComboBox jcbdias,JLabel cantHabEco,JLabel cantHabNeg,JLabel cantHabEje,JLabel cantHabPre){
         cantidadTotal=1;
         minutoInicio=480;
         minutoFinal=1440;

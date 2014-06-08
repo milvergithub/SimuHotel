@@ -18,6 +18,10 @@ import javax.swing.table.JTableHeader;
 import org.jfree.chart.ChartPanel;
 
 import ecuaciones.PanelM;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 /**
  * @author simulacion
@@ -39,9 +43,24 @@ public class World extends javax.swing.JFrame {
     private HashMap<String,Integer> precios;
     
     private ImageIcon imagen=new ImageIcon(getClass().getResource("/img/iconhotel.gif"));
-    private ManagerM mm;
+    private ControladorM mm;
     private Hora h;
     public World() {
+      //el archivo esta dentro de /src/histaria/archivo.mfa
+      File archivo=new File("src/historia/archivo.mfa");
+      BufferedReader entrada;
+      try {
+        entrada = new BufferedReader( new FileReader( archivo ) );
+        String linea;
+        while(entrada.ready()){
+            linea = entrada.readLine();
+            System.out.println(linea);
+        }
+      }catch (IOException e) {
+        e.printStackTrace();
+      }
+      
+      System.out.println("ruta= "+archivo.getAbsolutePath());
       economicos=new HashMap<String, Integer>();
       negocios=new HashMap<String, Integer>();
       ejecutivos=new HashMap<String, Integer>();
@@ -766,7 +785,7 @@ public class World extends javax.swing.JFrame {
             actulizarHabitaciones();
             panelTabla.removeAll();
             crearTabla();
-            mm=new ManagerM((StageM)stage,dtm,tablaResultados,jsVelocidad,jcbEconomico,jcbNegocio,jcbEjecutivo,jcbPremium,jcbDias,lblCantidadEconomico,lblCantidadNegocio,lblCantidadEjecutivo,lblCantidadPremium);
+            mm=new ControladorM((StageM)stage,dtm,tablaResultados,jsVelocidad,jcbEconomico,jcbNegocio,jcbEjecutivo,jcbPremium,jcbDias,lblCantidadEconomico,lblCantidadNegocio,lblCantidadEjecutivo,lblCantidadPremium);
             mm.start();
             btnIniciar.setEnabled(false);
             btnPausar.setEnabled(true);
