@@ -115,11 +115,8 @@ public class Graficos {
         for (int i = 1; i <= economico.size(); i++) {
            
            seriesEconomico.add(i-1,(economico.get("Dia"+i)*precios.get("ECONOMICO")));
-            System.out.println("ECONOMICO CANTIDAD=> "+economico.get("Dia"+i));
            seriesNegocio.add(i-1,(negocio.get("Dia"+i)*precios.get("NEGOCIO")));
-            System.out.println("NEGOCIO CANTIDAD =>"+negocio.get("Dia"+i));
            seriesEjecutivo.add(i-1,(ejecutivo.get("Dia"+i)*precios.get("EJECUTIVO")));
-           
            seriesPremium.add(i-1,(premium.get("Dia"+i)*precios.get("PREMIUM")));
         }
         

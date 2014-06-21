@@ -18,17 +18,13 @@ import javax.swing.table.JTableHeader;
 import org.jfree.chart.ChartPanel;
 
 import ecuaciones.PanelM;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashMap;
 /**
  * @author simulacion
  */
 public class World extends javax.swing.JFrame {
     
-    private int contador;
+    private final int contador;
     private JTable tablaResultados;
     private JTable tablaResultadosDetalle;
     private JTable tablaReporte;
@@ -41,31 +37,20 @@ public class World extends javax.swing.JFrame {
     private HashMap<String,Integer> premium;
     
     private HashMap<String,Integer> precios;
+    private HashMap<String,Integer> habitaciones;
     
-    private ImageIcon imagen=new ImageIcon(getClass().getResource("/img/iconhotel.gif"));
+    private final ImageIcon imagen=new ImageIcon(getClass().getResource("/img/iconhotel.gif"));
     private ControladorM mm;
     private Hora h;
+    
+    private SaveDatos guardaDatos;
     public World() {
-      //el archivo esta dentro de /src/histaria/archivo.mfa
-      File archivo=new File("src/historia/archivo.mfa");
-      BufferedReader entrada;
-      try {
-        entrada = new BufferedReader( new FileReader( archivo ) );
-        String linea;
-        while(entrada.ready()){
-            linea = entrada.readLine();
-            System.out.println(linea);
-        }
-      }catch (IOException e) {
-        e.printStackTrace();
-      }
-      
-      System.out.println("ruta= "+archivo.getAbsolutePath());
       economicos=new HashMap<String, Integer>();
       negocios=new HashMap<String, Integer>();
       ejecutivos=new HashMap<String, Integer>();
       premium=new HashMap<String, Integer>();
       precios=new HashMap<String, Integer>();
+      habitaciones=new HashMap<String, Integer>();
       contador=0;
       setTitle("TALLER DE SIMULACION");
       initComponents();
@@ -109,7 +94,7 @@ public class World extends javax.swing.JFrame {
             return num1+num2;
         }
     }
-    private void mostrarReporte(){
+    public void mostrarReporte(){
         panelResultado.removeAll();
         String titulos[]={"DIA","TIPO","CANTIDAD OCUPADO","CANTIDAD DESOCUPADO","COSTO HABITACION","TOTAL RECAUDADO"};
         String vacio[]={"","","","","",""};
@@ -186,16 +171,53 @@ public class World extends javax.swing.JFrame {
         String resumen[]={"","","","","MONTO TOTAL =>",String.valueOf(getFormatoCantidadTotal(montoTotal))};
         dtmRep.addRow(resumen);
         tablaReporte.repaint();
-        
+        //PRECIOS DE LA CONFIGURACION
         precios.put("ECONOMICO", (78-Integer.parseInt(String.valueOf(jcbEconomico.getSelectedItem()))));
         precios.put("NEGOCIO", (97-Integer.parseInt(String.valueOf(jcbNegocio.getSelectedItem()))));
         precios.put("EJECUTIVO", (120-Integer.parseInt(String.valueOf(jcbEjecutivo.getSelectedItem()))));
         precios.put("PREMIUM", (180+Integer.parseInt(String.valueOf(jcbPremium.getSelectedItem()))));
+        //CANTIDAD DE HABITACIONES CONFIGURACION
+        habitaciones.put("ECONOMICO", 200+Integer.parseInt(txtEconomico.getText()));
+        habitaciones.put("NEGOCIO", 200+Integer.parseInt(txtNegocio.getText()));
+        habitaciones.put("EJECUTIVO", 200+Integer.parseInt(txtEjecutivo.getText()));
+        habitaciones.put("PREMIUM", 100+Integer.parseInt(txtPremium.getText()));
         
         PanelPieChart.removeAll();
         PanelXYSeries.removeAll();
         PanelBarra.removeAll();
         Graficos graficos=new Graficos(economicos, negocios, ejecutivos, premium,precios);
+        guardaDatos=new SaveDatos(economicos, negocios, ejecutivos, premium, precios,habitaciones);
+        guardaDatos.guardarConfigDatos();
+
+        ChartPanel panelSS=guardaDatos.getRusultadosGuardados();
+        panelSS.setBounds(0,0,general.getWidth(),general.getHeight()-50);
+        general.add(panelSS);
+        general.repaint();
+        
+        ChartPanel panelSI=guardaDatos.getSugerenciaIndividual();
+        panelSI.setBounds(0,0,panelExplicacion.getWidth(),panelExplicacion.getHeight()-50);
+        panelExplicacion.add(panelSI);
+        panelExplicacion.repaint();
+        areaExplicacion.setText(guardaDatos.getDatelleConfiguracion());
+        
+        //SUGERENCIA MEJOR
+        /*
+                        "ECONOMICO\n"+"Habitaciones = "+arreglo[3]+"\nPrecio = "+arreglo[5]+
+                      "\nNEGOCIO\n"+"habitaciones = "+arreglo[9]+"\nPrecio = "+arreglo[11]+
+                      "\nEJECUTIVO\n"+"Habitaciones = "+arreglo[15]+"\nPrecio = "+arreglo[17]+
+                      "\nPREMIUM\n"+"Habitaciones = "+arreglo[21]+"\nPrecio = "+arreglo[23]
+        */
+        String mejorConf[]=guardaDatos.getMejorRecomendado();
+        txtHabEco.setText(mejorConf[3]);
+        txtHabNeg.setText(mejorConf[9]);
+        txtHabEje.setText(mejorConf[15]);
+        txtHabPre.setText(mejorConf[21]);
+        
+        txtCostoEco.setText(mejorConf[5]);
+        txtCostoNeg.setText(mejorConf[11]);
+        txtCostoEje.setText(mejorConf[17]);
+        txtCostoPre.setText(mejorConf[23]);
+        
         
         ChartPanel panelBB=graficos.getGraficoBarras();
         panelBB.setBounds(0, 0, PanelBarra.getWidth(), PanelBarra.getHeight()-50);
@@ -230,7 +252,7 @@ public class World extends javax.swing.JFrame {
         return cantidad;
     }
     private ArrayList<Integer> cuantosDias(){
-        ArrayList<Integer> diasSimulado=new ArrayList<Integer>();
+        ArrayList<Integer> diasSimulado=new ArrayList<>();
         int tamanio=tablaResultadosDetalle.getRowCount();
         int obj=Integer.parseInt(String.valueOf(tablaResultadosDetalle.getValueAt(0, 0)));
         System.out.println("DIA ES="+obj);
@@ -314,6 +336,28 @@ public class World extends javax.swing.JFrame {
         PanelXYSeries = new javax.swing.JPanel();
         PanelBarra = new javax.swing.JPanel();
         panelResultado = new javax.swing.JPanel();
+        jTabbedPane2 = new javax.swing.JTabbedPane();
+        panelSugerencia = new javax.swing.JTabbedPane();
+        general = new javax.swing.JPanel();
+        panelSugerenciaInd = new javax.swing.JPanel();
+        panelExplicacion = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        areaExplicacion = new javax.swing.JTextArea();
+        jPanel1 = new javax.swing.JPanel();
+        txtHabEco = new javax.swing.JTextField();
+        txtHabNeg = new javax.swing.JTextField();
+        txtHabPre = new javax.swing.JTextField();
+        txtHabEje = new javax.swing.JTextField();
+        jLabel17 = new javax.swing.JLabel();
+        jLabel18 = new javax.swing.JLabel();
+        jLabel19 = new javax.swing.JLabel();
+        jLabel20 = new javax.swing.JLabel();
+        txtCostoEco = new javax.swing.JTextField();
+        txtCostoNeg = new javax.swing.JTextField();
+        txtCostoEje = new javax.swing.JTextField();
+        txtCostoPre = new javax.swing.JTextField();
+        jLabel21 = new javax.swing.JLabel();
+        jLabel22 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem2 = new javax.swing.JMenuItem();
@@ -406,7 +450,7 @@ public class World extends javax.swing.JFrame {
         PanelHabitaciones.add(jcbEconomico);
         jcbEconomico.setBounds(330, 60, 50, 20);
 
-        jcbNegocio.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0", "7.5", "15" }));
+        jcbNegocio.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "0", "7", "15" }));
         PanelHabitaciones.add(jcbNegocio);
         jcbNegocio.setBounds(330, 90, 50, 20);
 
@@ -707,6 +751,107 @@ public class World extends javax.swing.JFrame {
 
         jtpCentral.addTab("REPORTES", panelResultado);
 
+        javax.swing.GroupLayout generalLayout = new javax.swing.GroupLayout(general);
+        general.setLayout(generalLayout);
+        generalLayout.setHorizontalGroup(
+            generalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 935, Short.MAX_VALUE)
+        );
+        generalLayout.setVerticalGroup(
+            generalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 596, Short.MAX_VALUE)
+        );
+
+        panelSugerencia.addTab("GRAFICO", general);
+
+        jTabbedPane2.addTab("SUGERENCIA TOTAL", panelSugerencia);
+
+        panelExplicacion.setBackground(new java.awt.Color(153, 153, 153));
+
+        javax.swing.GroupLayout panelExplicacionLayout = new javax.swing.GroupLayout(panelExplicacion);
+        panelExplicacion.setLayout(panelExplicacionLayout);
+        panelExplicacionLayout.setHorizontalGroup(
+            panelExplicacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 677, Short.MAX_VALUE)
+        );
+        panelExplicacionLayout.setVerticalGroup(
+            panelExplicacionLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 382, Short.MAX_VALUE)
+        );
+
+        areaExplicacion.setColumns(20);
+        areaExplicacion.setFont(new java.awt.Font("Monospaced", 1, 14)); // NOI18N
+        areaExplicacion.setForeground(new java.awt.Color(0, 153, 51));
+        areaExplicacion.setRows(5);
+        jScrollPane1.setViewportView(areaExplicacion);
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel1.setLayout(null);
+        jPanel1.add(txtHabEco);
+        txtHabEco.setBounds(260, 80, 113, 20);
+        jPanel1.add(txtHabNeg);
+        txtHabNeg.setBounds(260, 110, 113, 20);
+        jPanel1.add(txtHabPre);
+        txtHabPre.setBounds(260, 170, 113, 20);
+        jPanel1.add(txtHabEje);
+        txtHabEje.setBounds(260, 140, 113, 20);
+
+        jLabel17.setText("NEGOCIO");
+        jPanel1.add(jLabel17);
+        jLabel17.setBounds(140, 110, 110, 20);
+
+        jLabel18.setText("ECONOMICA");
+        jPanel1.add(jLabel18);
+        jLabel18.setBounds(140, 80, 110, 20);
+
+        jLabel19.setText("PREMIUM");
+        jPanel1.add(jLabel19);
+        jLabel19.setBounds(140, 170, 110, 20);
+
+        jLabel20.setText("EJECUTIVO");
+        jPanel1.add(jLabel20);
+        jLabel20.setBounds(140, 140, 110, 20);
+        jPanel1.add(txtCostoEco);
+        txtCostoEco.setBounds(400, 80, 113, 20);
+        jPanel1.add(txtCostoNeg);
+        txtCostoNeg.setBounds(400, 110, 113, 20);
+        jPanel1.add(txtCostoEje);
+        txtCostoEje.setBounds(400, 140, 113, 20);
+        jPanel1.add(txtCostoPre);
+        txtCostoPre.setBounds(400, 170, 113, 20);
+
+        jLabel21.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/casa.png"))); // NOI18N
+        jPanel1.add(jLabel21);
+        jLabel21.setBounds(260, 10, 100, 60);
+
+        jLabel22.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/moneda.png"))); // NOI18N
+        jPanel1.add(jLabel22);
+        jLabel22.setBounds(400, 10, 100, 60);
+
+        javax.swing.GroupLayout panelSugerenciaIndLayout = new javax.swing.GroupLayout(panelSugerenciaInd);
+        panelSugerenciaInd.setLayout(panelSugerenciaIndLayout);
+        panelSugerenciaIndLayout.setHorizontalGroup(
+            panelSugerenciaIndLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelSugerenciaIndLayout.createSequentialGroup()
+                .addGroup(panelSugerenciaIndLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(panelExplicacion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 253, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        panelSugerenciaIndLayout.setVerticalGroup(
+            panelSugerenciaIndLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelSugerenciaIndLayout.createSequentialGroup()
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 236, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panelExplicacion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+        );
+
+        jTabbedPane2.addTab("SUGERENCIA INDIVIDUAL", panelSugerenciaInd);
+
+        jtpCentral.addTab("SUGERENCIAS", jTabbedPane2);
+
         getContentPane().add(jtpCentral);
         jtpCentral.setBounds(0, 0, 950, 680);
 
@@ -820,16 +965,16 @@ public class World extends javax.swing.JFrame {
         return res;
     }
     private void setDefectoValor(){
-        if (txtEconomico.getText().equals("")||txtEconomico.getText().equals(null)) {
+        if (txtEconomico.getText().equals("")||txtEconomico.getText() == null) {
             txtEconomico.setText("0");
         }
-        if (txtNegocio.getText().equals("")||txtNegocio.getText().equals(null)) {
+        if (txtNegocio.getText().equals("")||txtNegocio.getText() == null) {
             txtNegocio.setText("0");
         }
-        if (txtEjecutivo.getText().equals("")||txtEjecutivo.getText().equals(null)) {
+        if (txtEjecutivo.getText().equals("")||txtEjecutivo.getText() == null) {
             txtEjecutivo.setText("0");
         }
-        if (txtPremium.getText().equals("")||txtPremium.getText().equals(null)) {
+        if (txtPremium.getText().equals("")||txtPremium.getText() == null) {
             txtPremium.setText("0");
         }
     }
@@ -937,16 +1082,11 @@ public class World extends javax.swing.JFrame {
             //UIManager.setLookAndFeel("com.jtattoo.plaf.graphite.GraphiteLookAndFeel");
             //UIManager.setLookAndFeel("com.jtattoo.plaf.hifi.HiFiLookAndFeel");
             //UIManager.setLookAndFeel("com.jtattoo.plaf.graphite.GraphiteLookAndFeel");
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(World.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(World.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(World.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
             Logger.getLogger(World.class.getName()).log(Level.SEVERE, null, ex);
         }
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new World().setVisible(true);
             }
@@ -960,9 +1100,11 @@ public class World extends javax.swing.JFrame {
     private javax.swing.JPanel PanelStart;
     private javax.swing.JPanel PanelTablaDetalle;
     private javax.swing.JPanel PanelXYSeries;
+    private javax.swing.JTextArea areaExplicacion;
     private javax.swing.JButton btnIniciar;
     private javax.swing.JButton btnPausar;
     private javax.swing.JButton btnTerminar;
+    private javax.swing.JPanel general;
     private javax.swing.JLabel horario;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -972,7 +1114,13 @@ public class World extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
+    private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
+    private javax.swing.JLabel jLabel21;
+    private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -987,11 +1135,14 @@ public class World extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItem5;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JComboBox jcbDias;
     private javax.swing.JComboBox jcbEconomico;
     private javax.swing.JComboBox jcbEjecutivo;
@@ -1010,13 +1161,24 @@ public class World extends javax.swing.JFrame {
     private javax.swing.JLabel lblHabitacionesEconomica3;
     private javax.swing.JLabel lblHabitacionesEconomica4;
     private javax.swing.JLabel lblHabitacionesEconomica5;
+    private javax.swing.JPanel panelExplicacion;
     private javax.swing.JPanel panelResultado;
+    private javax.swing.JTabbedPane panelSugerencia;
+    private javax.swing.JPanel panelSugerenciaInd;
     private javax.swing.JPanel panelTabla;
     private javax.swing.JInternalFrame setings;
     private javax.swing.JPanel stage;
     private javax.swing.JTabbedPane tabs;
+    private javax.swing.JTextField txtCostoEco;
+    private javax.swing.JTextField txtCostoEje;
+    private javax.swing.JTextField txtCostoNeg;
+    private javax.swing.JTextField txtCostoPre;
     private javax.swing.JFormattedTextField txtEconomico;
     private javax.swing.JFormattedTextField txtEjecutivo;
+    private javax.swing.JTextField txtHabEco;
+    private javax.swing.JTextField txtHabEje;
+    private javax.swing.JTextField txtHabNeg;
+    private javax.swing.JTextField txtHabPre;
     private javax.swing.JFormattedTextField txtNegocio;
     private javax.swing.JFormattedTextField txtPremium;
     // End of variables declaration//GEN-END:variables
